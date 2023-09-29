@@ -4,11 +4,12 @@
 #define MAX_SMALL 100
 
 const size_t SIZE_BLK_SMALL = 128-sizeof(size_t);
-char small_tab[128*MAX_SMALL]; /*Est-ce vraiment dans le tas ?*/
+char small_tab[MAX_SMALL*128]; 
+
 
 void *mymalloc(size_t size){
     if (size<=SIZE_BLK_SMALL){
-        for (int b=0; b<MAX_SMALL;b++){
+        for (size_t b=0; b<MAX_SMALL;b++){
             if(*(size_t*)(small_tab+(128*b))%2==0){
                 return small_tab+(128*b)+sizeof(size_t);
             }
@@ -43,4 +44,20 @@ void *myrealloc(void *ptr, size_t size){
         return NULL;
     }
     return ptr;
-} 
+}
+
+int visualise_mem(int b){
+    /*Displays content of bloc b*/
+    if (b>= MAX_SMALL || b<0){
+        printf("Error : bloc out of range \n");
+        return 1;
+    }
+    printf("Header : %ld \n", *((size_t*)small_tab +b));
+    printf("Content : ");
+    for(int i = b*128 ; i<(b+1)*128 ; i++){
+        printf("%d", small_tab[i]);
+    }
+    printf("\n");
+    return 0;
+}
+
