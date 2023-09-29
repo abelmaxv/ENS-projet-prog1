@@ -11,6 +11,7 @@ void *mymalloc(size_t size){
     if (size<=SIZE_BLK_SMALL){
         for (size_t b=0; b<MAX_SMALL;b++){
             if(*(size_t*)(small_tab+(128*b))%2==0){
+                *(size_t*)(small_tab+(128*b))+=1;
                 return small_tab+(128*b)+sizeof(size_t);
             }
         }
@@ -54,7 +55,7 @@ int visualise_mem(int b){
     }
     printf("Header : %ld \n", *((size_t*)small_tab +b));
     printf("Content : ");
-    for(int i = b*128 ; i<(b+1)*128 ; i++){
+    for(int i = b*128 + sizeof(size_t) ; i<(b+1)*128 ; i++){
         printf("%d", small_tab[i]);
     }
     printf("\n");
