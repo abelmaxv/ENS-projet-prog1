@@ -91,6 +91,11 @@ void myrealloc_test1(){
     /* Test passed */
 }
 
+void myrealloc_test2(){
+    /* Tries to realloc a bloc that is not in small_tab */
+    char *p = (char *)malloc(sizeof(char));
+    myrealloc(p, 6);
+}
 
 
 int main(){
@@ -105,7 +110,8 @@ int main(){
     //myfree_test2();
     //myfree_test3();
 
-    myrealloc_test1();
+    //myrealloc_test1();
+    myrealloc_test2();
 
 
     return 0;
