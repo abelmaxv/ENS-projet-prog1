@@ -58,13 +58,24 @@ void mymalloc_test4(){
     /* Test passed */
 }
 
+void myfree_test2(){
+    /* Allocates a bloc then tries to free it two times */
+    char *p = mymalloc(6);
+    p[4]=6;
+    visualise_mem();
+    myfree(p);
+    myfree(p);
+
+    /* Test passed */
+}
 
 int main(){
     //mymalloc_test1();
     //myfree_test1();
     //mymalloc_test2();
     //mymalloc_test3();
-    mymalloc_test4();
+    //mymalloc_test4();
+    myfree_test2();
 
     return 0;
 }
