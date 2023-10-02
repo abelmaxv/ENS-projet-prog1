@@ -12,15 +12,6 @@ void mymalloc_test1(){
     /* Test passed */
 }
 
-void myfree_test1(){
-    /*Allocates first bloc of memory then frees it*/
-    char *p = (char *) mymalloc(1);
-    visualise_mem();
-    myfree(p);
-    visualise_mem();
-
-    /* Test passed */
-}
 
 void mymalloc_test2(){
     /* Allocates 3 blocs of memory, frees the 2de one, then allocates a bloc */
@@ -58,6 +49,17 @@ void mymalloc_test4(){
     /* Test passed */
 }
 
+
+void myfree_test1(){
+    /*Allocates first bloc of memory then frees it*/
+    char *p = (char *) mymalloc(1);
+    visualise_mem();
+    myfree(p);
+    visualise_mem();
+
+    /* Test passed */
+}
+
 void myfree_test2(){
     /* Allocates a bloc then tries to free it two times */
     char *p = mymalloc(6);
@@ -69,13 +71,20 @@ void myfree_test2(){
     /* Test passed */
 }
 
+void myfree_test3(){
+    /* Tries to free a bloc that is not in the table */
+    char *p = (char *) malloc(sizeof(char));
+    myfree(p); 
+}
+
 int main(){
     //mymalloc_test1();
-    //myfree_test1();
     //mymalloc_test2();
     //mymalloc_test3();
     //mymalloc_test4();
-    myfree_test2();
+    //myfree_test1();
+    //myfree_test2();
+    myfree_test3();
 
     return 0;
 }
