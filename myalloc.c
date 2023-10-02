@@ -119,7 +119,7 @@ int visualise_mem(){
 
 
 
-/* CONTROLLED READING/WRITING FUNCTIONS */
+/* CONTROLLED READING FUNCTIONS */
 
 int ctrl_read(void *ptr){
     /* Allows reading of *ptr iif 
