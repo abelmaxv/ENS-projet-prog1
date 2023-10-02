@@ -49,13 +49,22 @@ void mymalloc_test3(){
     /* Test passed */
 }
 
+void mymalloc_test4(){
+    /* Tries to allocates memory 101 times */
+    for (int i =0; i<101; i++){
+        mymalloc(1);
+    }
+
+    /* Test passed */
+}
 
 
 int main(){
     //mymalloc_test1();
     //myfree_test1();
     //mymalloc_test2();
-    mymalloc_test3();
+    //mymalloc_test3();
+    mymalloc_test4();
 
     return 0;
 }

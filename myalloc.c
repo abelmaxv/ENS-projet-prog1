@@ -15,8 +15,10 @@ void *mymalloc(size_t size){
                 return small_tab+(128*b)+sizeof(size_t);
             }
         }
+        printf("Error : none of the blocs are free \n");
     }
-    printf("Error : asked for too much memory \n");
+    else
+        printf("Error : asked for too much memory \n");
     return NULL;
 }
 
