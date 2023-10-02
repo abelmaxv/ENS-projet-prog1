@@ -16,6 +16,7 @@ void *mymalloc(size_t size){
             }
         }
     }
+    printf("Error : asked for too much memory \n");
     return NULL;
 }
 

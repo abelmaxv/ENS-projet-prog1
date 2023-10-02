@@ -36,13 +36,26 @@ void mymalloc_test2(){
     *s =1;
     visualise_mem();
 
+    /* Test passed */
+
 }
+
+void mymalloc_test3(){
+    /* Tries to allocate a data too big */
+    char *p = (char *)mymalloc(130);
+    if(p != NULL)
+        *p=1;
+
+    /* Test passed */
+}
+
 
 
 int main(){
     //mymalloc_test1();
     //myfree_test1();
-    mymalloc_test2();
+    //mymalloc_test2();
+    mymalloc_test3();
 
     return 0;
 }
