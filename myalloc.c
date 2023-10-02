@@ -6,6 +6,7 @@
 
 char small_tab[MAX_SMALL*128]; 
 
+/* MEMORY ALLOCATION FUNCTIONS */
 
 void *mymalloc(size_t size){
     if (size<=SIZE_BLK_SMALL){
@@ -54,10 +55,7 @@ void *myrealloc(void *ptr, size_t size){
 
 
 
-
-
-
-
+/* FUNCTIONS TO VISUALIZE MEMORY */
 
 int visualise_bloc(int b){
     /*Displays content of bloc b*/
@@ -114,4 +112,38 @@ int visualise_mem(){
     printf("################################################# \n");
     return 0;
 }
+
+
+
+
+
+
+
+/* CONTROLLED READING/WRITING FUNCTIONS */
+
+int ctrl_read(void *ptr){
+    /* Allows reading of *ptr iif 
+        - ptr points at the content part of a bloc
+        - the type of ptr is small enough that it's content is in one bloc
+        - the bloc is marked as occupied
+        */
+    
+    size_t size = (size_t) (ptr+1) - (size_t) ptr;
+    if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
+        printf("Error : the pointer given isn't accessible by ctrl_read \n");
+        return 1;
+    }
+    else if (((size_t) ptr - (size_t) small_tab)/128!=((size_t) ptr + size - (size_t) small_tab)/128){
+        printf("Error : the data type is to large \n");
+        return 1;
+    }
+    else if ((*(size_t*)(small_tab + ((size_t)ptr -(size_t)small_tab)/128)%2==0)){
+        printf("Error : the bloc is free \n");
+        return 1;
+    }
+    else
+        // I need to figure out how to print the content of a void* pointer...
+        printf("%p", ptr);
+}
+
 
