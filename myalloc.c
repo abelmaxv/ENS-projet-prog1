@@ -43,8 +43,8 @@ void *myrealloc(void *ptr, size_t size){
     if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
         printf("Error : the pointer given isn't accessible by myfree \n");
     }
-    else if(((size_t) ptr - (size_t) small_tab)%128 != SIZE_BLK_SMALL){
-        printf("Error : the pointer given is not at the begining of a bloc");
+    else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
+        printf("Error : the pointer given is not at the begining of a bloc \n");
     }
     else if(size>SIZE_BLK_SMALL || *((size_t *) ptr -1)%2==0){
         return NULL;
