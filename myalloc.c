@@ -11,23 +11,26 @@ char * fst_free = small_tab;
 //is_initialized becomes 1 after the first call of mymalloc and initialize
 char is_initialized = 0; 
 
+void initialize(){
+    /* Fills headers to make initial list for empty small_tab */
+    size_t **ptr;
+    for (int b = 0; b<MAX_SMALL-1; b++){
+        ptr = (size_t **)(small_tab + b*128);
+        *ptr = (size_t *) (small_tab + (b+1)*128);
+    }
+    ptr =(size_t **) (small_tab + (MAX_SMALL-1)*128);
+    *ptr = NULL;
+    is_initialized = 1;
+}
 
 
 
 
 /* MEMORY ALLOCATION FUNCTIONS */
 
-void initialize(){
-    /* Recursivly fills headers to make initial list for empty small_tab */
-    for (int b = 0; b<MAX_SMALL-1; b++){
-        *((size_t *)(small_tab + b*128)) = (size_t) (small_tab + (b+1)*128);
-    }
-    *((size_t *) (small_tab + (MAX_SMALL-1)*128)) = 0;
-    is_initialized = 1;
-}
 
-/*
-void *mymalloc(size_t size){
+// First part version
+void *mymalloc_previous(size_t size){
     if (size<=SIZE_BLK_SMALL){
         for (size_t b=0; b<MAX_SMALL;b++){
             if(*(size_t*)(small_tab+(128*b))%2==0){
@@ -41,15 +44,22 @@ void *mymalloc(size_t size){
         printf("Error : asked for too much memory \n");
     return NULL;
 }
-*/
+
 
 void *mymalloc(size_t size){
     //initializes small_tab iif it's not allready done
     if (is_initialized ==0)
         initialize();
+
     if (size<=SIZE_BLK_SMALL && fst_free != NULL){
-            char * ptr = fst_free + sizeof(size_t);
-            return ptr;
+            char * temp_ptr = fst_free ;
+
+            // changes fst_free
+            fst_free = *(char **) temp_ptr;
+            // marks the bloc as occupied
+            *(size_t *) temp_ptr +=1;
+
+            return temp_ptr + sizeof(size_t);
     }
     else if (fst_free == NULL)
         printf("Error : none of the blocs are free \n");
@@ -59,8 +69,13 @@ void *mymalloc(size_t size){
 }
 
 
-/*
-void myfree(void* ptr){
+
+
+
+
+
+//First part version
+void myfree_previous(void* ptr){
     if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
         printf("Error : the pointer given isn't accessible by myfree \n");
     
@@ -76,7 +91,7 @@ void myfree(void* ptr){
         (*((size_t *) ptr - 1))<<=1;
     }
 }
-*/
+
 
 void myfree(void* ptr){
     if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
