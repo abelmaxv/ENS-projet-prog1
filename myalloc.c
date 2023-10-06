@@ -4,7 +4,7 @@
 #define MAX_SMALL 100
 #define SIZE_BLK_SMALL (128-sizeof(size_t))
 
-char small_tab[MAX_SMALL*128]; 
+char small_tab[MAX_SMALL*128];
 
 /* MEMORY ALLOCATION FUNCTIONS */
 
@@ -121,7 +121,7 @@ int visualise_mem(){
 
 /* CONTROLLED READING FUNCTIONS */
 
-int ctrl_read(void *ptr){
+int ctrl_read_int(int *ptr){
     /* Allows reading of *ptr iif 
         - ptr points at the content part of a bloc
         - the type of ptr is small enough that it's content is in one bloc
@@ -141,9 +141,6 @@ int ctrl_read(void *ptr){
         printf("Error : the bloc is free \n");
         return 1;
     }
-    else
-        // I need to figure out how to print the content of a void* pointer...
-        printf("%p", ptr);
+    printf("%d", *ptr);
+    return 0;
 }
-
-

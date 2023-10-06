@@ -79,6 +79,13 @@ void myfree_test3(){
     /* Test passed */
 }
 
+void myfree_test4(){
+    /* Tries to free NULL pointer */
+    myfree(NULL);
+
+    /* Test passed */
+}
+
 void myrealloc_test1(){
     /* Allocate a bloc then reallocates it then frees it */
     char *p = (char *) mymalloc(1);
@@ -95,6 +102,8 @@ void myrealloc_test2(){
     /* Tries to realloc a bloc that is not in small_tab */
     char *p = (char *)malloc(sizeof(char));
     myrealloc(p, 6);
+
+    /* Test passed */
 }
 
 
@@ -109,9 +118,10 @@ int main(){
     //myfree_test1();
     //myfree_test2();
     //myfree_test3();
+    myfree_test4();
 
     //myrealloc_test1();
-    myrealloc_test2();
+    //myrealloc_test2();
 
 
     return 0;
