@@ -106,6 +106,14 @@ void myrealloc_test2(){
     /* Test passed */
 }
 
+void initialize_test(){
+    char *p = (char*) mymalloc(1);
+    *p =*p;
+    for (int i =0 ; i<100 ; i++){
+        visualise_bloc(i);
+    }
+}
+
 
 int main(){
     /* Uncomment the test to operate */
@@ -118,10 +126,12 @@ int main(){
     //myfree_test1();
     //myfree_test2();
     //myfree_test3();
-    myfree_test4();
+    //myfree_test4();
 
     //myrealloc_test1();
     //myrealloc_test2();
+
+    initialize_test();
 
 
     return 0;

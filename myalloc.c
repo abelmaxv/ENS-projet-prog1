@@ -5,9 +5,28 @@
 #define SIZE_BLK_SMALL (128-sizeof(size_t))
 
 char small_tab[MAX_SMALL*128];
+//Begining of the list of free blocs : fst_free
+char * fst_free = small_tab;
+
+//is_initialized becomes 1 after the first call of mymalloc and initialize
+char is_initialized = 0; 
+
+
+
+
 
 /* MEMORY ALLOCATION FUNCTIONS */
 
+void initialize(){
+    /* Recursivly fills headers to make initial list for empty small_tab */
+    for (int b = 0; b<MAX_SMALL-1; b++){
+        *((size_t *)(small_tab + b*128)) = (size_t) (small_tab + (b+1)*128);
+    }
+    *((size_t *) (small_tab + (MAX_SMALL-1)*128)) = 0;
+    is_initialized = 1;
+}
+
+/*
 void *mymalloc(size_t size){
     if (size<=SIZE_BLK_SMALL){
         for (size_t b=0; b<MAX_SMALL;b++){
@@ -22,6 +41,42 @@ void *mymalloc(size_t size){
         printf("Error : asked for too much memory \n");
     return NULL;
 }
+*/
+
+void *mymalloc(size_t size){
+    //initializes small_tab iif it's not allready done
+    if (is_initialized ==0)
+        initialize();
+    if (size<=SIZE_BLK_SMALL && fst_free != NULL){
+            char * ptr = fst_free + sizeof(size_t);
+            return ptr;
+    }
+    else if (fst_free == NULL)
+        printf("Error : none of the blocs are free \n");
+    else
+        printf("Error : asked for too much memory \n");
+    return NULL;
+}
+
+
+/*
+void myfree(void* ptr){
+    if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
+        printf("Error : the pointer given isn't accessible by myfree \n");
+    
+    else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
+        printf("%lu \n",((size_t) ptr - (size_t) small_tab)%128);
+        printf("%lu \n", SIZE_BLK_SMALL);
+        printf("Error : the pointer given is not at the begining of a bloc \n");
+    }
+    else if (*((size_t *) ptr -1)%2 == 0){
+        printf("Error : the bloc is empty \n");
+    }
+    else{
+        (*((size_t *) ptr - 1))<<=1;
+    }
+}
+*/
 
 void myfree(void* ptr){
     if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
@@ -39,6 +94,7 @@ void myfree(void* ptr){
         (*((size_t *) ptr - 1))<<=1;
     }
 }
+
 
 void *myrealloc(void *ptr, size_t size){
     if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
@@ -64,7 +120,7 @@ int visualise_bloc(int b){
         return 1;
     }
     printf("Displaying bloc %d \n", b);
-    printf("Header : %ld \n", *((size_t*)small_tab +b)); // If header is even then the bloc is free 
+    printf("Header : %ld \n", *((size_t*)(small_tab +128*b))); // If header is even then the bloc is free 
     printf("Content : ");
     for(int i = b*128 + sizeof(size_t) ; i<(b+1)*128 ; i++){
         printf("%d", small_tab[i]);
@@ -113,8 +169,19 @@ int visualise_mem(){
     return 0;
 }
 
-
-
+/*
+void visualize_free_bloc(){
+    if (is_initialized ==0)
+        printf("Error : memory is not initialized \n");
+    else{
+        char * ptr = fst_free;
+        while (ptr != NULL){
+            printf("%lu \n", (*(size_t *)ptr));
+            ptr = *(size_t *)ptr;
+        }
+    }
+}
+*/
 
 
 
