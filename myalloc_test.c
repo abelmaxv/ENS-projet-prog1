@@ -45,7 +45,7 @@ void mymalloc_test4(){
     for (int i =0; i<101; i++){
         mymalloc(1);
     }
-
+    visualise_mem();
     /* Test passed */
 }
 
@@ -107,8 +107,9 @@ void myrealloc_test2(){
 }
 
 void initialize_test(){
-    char *p = (char*) mymalloc(1);
-    *p =*p;
+    /* Initializes memory when calling mymalloc */
+    int *p = (int*) mymalloc(4);
+    *p +=1;
     for (int i =0 ; i<100 ; i++){
         visualise_bloc(i);
     }
@@ -131,7 +132,7 @@ int main(){
     //myrealloc_test1();
     //myrealloc_test2();
 
-    initialize_test();
+    //initialize_test();
 
 
     return 0;

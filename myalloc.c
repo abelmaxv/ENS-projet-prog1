@@ -30,7 +30,7 @@ void initialize(){
 
 
 // First part version
-void *mymalloc_previous(size_t size){
+void *mymalloc_v1(size_t size){
     if (size<=SIZE_BLK_SMALL){
         for (size_t b=0; b<MAX_SMALL;b++){
             if(*(size_t*)(small_tab+(128*b))%2==0){
@@ -75,13 +75,11 @@ void *mymalloc(size_t size){
 
 
 //First part version
-void myfree_previous(void* ptr){
+void myfree_v1(void* ptr){
     if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
         printf("Error : the pointer given isn't accessible by myfree \n");
     
     else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
-        printf("%lu \n",((size_t) ptr - (size_t) small_tab)%128);
-        printf("%lu \n", SIZE_BLK_SMALL);
         printf("Error : the pointer given is not at the begining of a bloc \n");
     }
     else if (*((size_t *) ptr -1)%2 == 0){
@@ -98,15 +96,17 @@ void myfree(void* ptr){
         printf("Error : the pointer given isn't accessible by myfree \n");
     
     else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
-        printf("%lu \n",((size_t) ptr - (size_t) small_tab)%128);
-        printf("%lu \n", SIZE_BLK_SMALL);
         printf("Error : the pointer given is not at the begining of a bloc \n");
     }
     else if (*((size_t *) ptr -1)%2 == 0){
         printf("Error : the bloc is empty \n");
     }
     else{
-        (*((size_t *) ptr - 1))<<=1;
+        char **bloc_ptr = (char **)((char *) ptr - sizeof(size_t));
+        // The freed bloc points to fst_free
+        *bloc_ptr = fst_free;  
+        // fst_free points to the freed bloc
+        fst_free = (char *) ptr - sizeof(size_t);
     }
 }
 
@@ -184,24 +184,12 @@ int visualise_mem(){
     return 0;
 }
 
-/*
-void visualize_free_bloc(){
-    if (is_initialized ==0)
-        printf("Error : memory is not initialized \n");
-    else{
-        char * ptr = fst_free;
-        while (ptr != NULL){
-            printf("%lu \n", (*(size_t *)ptr));
-            ptr = *(size_t *)ptr;
-        }
-    }
-}
-*/
 
 
 
 
-/* CONTROLLED READING FUNCTIONS */
+
+/* CONTROLLED READING/WRITING FUNCTIONS */
 
 int ctrl_read_int(int *ptr){
     /* Allows reading of *ptr iif 
