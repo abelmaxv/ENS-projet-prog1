@@ -143,7 +143,6 @@ void visualise_bloc(int b){
     }
     printf("\n");
     printf("________________________________________________ \n");
-    return 0;
 }
 
 

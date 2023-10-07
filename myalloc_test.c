@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "myalloc.h"
 
 void mymalloc_test1(){
@@ -115,6 +116,59 @@ void initialize_test(){
     }
 }
 
+void performance_test(){
+    /* Compares the time of execution of mymalloc with previous version and real malloc.
+    Operates 1 000 000 times MAX_SMALL allocation and free and times it.
+    */
+    clock_t start, end;
+    double execution_time;
+    char *ptrs[100];
+    printf("Testing performance of mymalloc v1... \n");
+    start = clock();
+    for(int i=0; i<1000000; i++){
+        for (int j=0; j<100; j++){
+            ptrs[j]= (char*) mymalloc_v1(1);
+        }
+        for (int j=0; j<100; j++){
+            myfree_v1(ptrs[j]);
+        }
+    }
+    end = clock();
+    execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+    printf("Time for mymalloc_v1 : %f sec \n\n",execution_time);
+
+    printf("Testing performance of mymalloc... \n");
+    start = clock();
+    for(int i=0; i<1000000; i++){
+        for (int j=0; j<100; j++){
+            ptrs[j]= (char*) mymalloc(1);
+        }
+        for (int j=0; j<100; j++){
+            myfree(ptrs[j]);
+        }
+    }
+    end = clock();
+    execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+    printf("Time for mymalloc : %f sec \n\n",execution_time);
+
+
+    printf("Testing performance of malloc... \n");
+    start = clock();
+    for(int i=0; i<1000000; i++){
+        for (int j=0; j<100; j++){
+            ptrs[j]= (char*) malloc(1);
+        }
+        for (int j=0; j<100; j++){
+            free(ptrs[j]);
+        }
+    }
+    end = clock();
+    execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+    printf("Time for malloc : %f sec \n\n",execution_time);
+
+
+}
+
 
 int main(){
     /* Uncomment the test to operate */
@@ -134,6 +188,6 @@ int main(){
 
     //initialize_test();
 
-
+    performance_test();
     return 0;
 }
