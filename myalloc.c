@@ -38,10 +38,11 @@ void *mymalloc_v1(size_t size){
                 return small_tab+(128*b)+sizeof(size_t);
             }
         }
-        printf("Error : none of the blocs are free \n");
+        printf("ERROR : none of the blocs are free \n");
     }
-    else
-        printf("Error : asked for too much memory \n");
+    else{
+        printf("ERROR : asked for too much memory \n");
+    }
     return NULL;
 }
 
@@ -62,9 +63,9 @@ void *mymalloc(size_t size){
             return temp_ptr + sizeof(size_t);
     }
     else if (fst_free == NULL)
-        printf("Error : none of the blocs are free \n");
+        printf("ERROR : none of the blocs are free \n");
     else
-        printf("Error : asked for too much memory \n");
+        printf("ERROR : asked for too much memory \n");
     return NULL;
 }
 
@@ -77,13 +78,13 @@ void *mymalloc(size_t size){
 //First part version
 void myfree_v1(void* ptr){
     if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
-        printf("Error : the pointer given isn't accessible by myfree \n");
+        printf("ERROR : the pointer given isn't accessible by myfree \n");
     
     else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
-        printf("Error : the pointer given is not at the begining of a bloc \n");
+        printf("ERROR : the pointer given is not at the begining of a bloc \n");
     }
     else if (*((size_t *) ptr -1)%2 == 0){
-        printf("Error : the bloc is empty \n");
+        printf("ERROR : the bloc is empty \n");
     }
     else{
         (*((size_t *) ptr - 1))<<=1;
@@ -93,13 +94,13 @@ void myfree_v1(void* ptr){
 
 void myfree(void* ptr){
     if (!((size_t) small_tab <= (size_t) ptr  && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL)))
-        printf("Error : the pointer given isn't accessible by myfree \n");
+        printf("ERROR : the pointer given isn't accessible by myfree \n");
     
     else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
-        printf("Error : the pointer given is not at the begining of a bloc \n");
+        printf("ERROR : the pointer given is not at the begining of a bloc \n");
     }
     else if (*((size_t *) ptr -1)%2 == 0){
-        printf("Error : the bloc is empty \n");
+        printf("ERROR : the bloc is empty \n");
     }
     else{
         char **bloc_ptr = (char **)((char *) ptr - sizeof(size_t));
@@ -113,10 +114,10 @@ void myfree(void* ptr){
 
 void *myrealloc(void *ptr, size_t size){
     if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
-        printf("Error : the pointer given isn't accessible by myrealloc \n");
+        printf("ERROR : the pointer given isn't accessible by myrealloc \n");
     }
     else if(((size_t) ptr - (size_t) small_tab)%128 != sizeof(size_t)){
-        printf("Error : the pointer given is not at the begining of a bloc \n");
+        printf("ERROR : the pointer given is not at the begining of a bloc \n");
     }
     else if(size>SIZE_BLK_SMALL || *((size_t *) ptr -1)%2==0){
         return NULL;
@@ -128,11 +129,11 @@ void *myrealloc(void *ptr, size_t size){
 
 /* FUNCTIONS TO VISUALIZE MEMORY */
 
-int visualise_bloc(int b){
+void visualise_bloc(int b){
     /*Displays content of bloc b*/
     if (b>= MAX_SMALL || b<0){
-        printf("Error : bloc out of range \n");
-        return 1;
+        printf("ERROR : bloc out of range \n");
+        exit(1);
     }
     printf("Displaying bloc %d \n", b);
     printf("Header : %ld \n", *((size_t*)(small_tab +128*b))); // If header is even then the bloc is free 
@@ -174,13 +175,13 @@ int *occ_blocs(){
 
 
 int visualise_mem(){
-    printf("################################################# \n");
+    printf("################################################ \n");
     int* ob_tab = occ_blocs();
     for (int i = 1 ; i< ob_tab[0]+1 ;i++){
         visualise_bloc(ob_tab[i]);
     }
     free(ob_tab);
-    printf("################################################# \n");
+    printf("################################################ \n");
     return 0;
 }
 
@@ -191,26 +192,106 @@ int visualise_mem(){
 
 /* CONTROLLED READING/WRITING FUNCTIONS */
 
-int ctrl_read_int(int *ptr){
+void ctrl_read_int(int *ptr){
     /* Allows reading of *ptr iif 
-        - ptr points at the content part of a bloc
-        - the type of ptr is small enough that it's content is in one bloc
-        - the bloc is marked as occupied
-        */
+        #1 ptr points in the content part of a bloc
+        #2 the type of ptr is small enough that its content is in one bloc
+        #3 the bloc is marked as occupied
+    */
     
-    size_t size = (size_t) (ptr+1) - (size_t) ptr;
+    size_t size = sizeof(int);
+    //Checks #1
     if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
-        printf("Error : the pointer given isn't accessible by ctrl_read \n");
-        return 1;
+        printf("ERROR : the pointer given isn't accessible by ctrl_read_int \n");
+        exit(1);
     }
+    //Checks #2
     else if (((size_t) ptr - (size_t) small_tab)/128!=((size_t) ptr + size - (size_t) small_tab)/128){
-        printf("Error : the data type is to large \n");
-        return 1;
+        printf("ERROR : the data type is to large \n");
+        exit(1);
     }
+    //Checks #3
     else if ((*(size_t*)(small_tab + ((size_t)ptr -(size_t)small_tab)/128)%2==0)){
-        printf("Error : the bloc is free \n");
-        return 1;
+        printf("ERROR : the bloc is free \n");
+        exit(1);
     }
     printf("%d", *ptr);
-    return 0;
+}
+
+
+void ctrl_read_char(char *ptr){
+    /* Allows reading of *ptr iif 
+        #1 ptr points in the content part of a bloc
+        #2 the type of ptr is small enough that its content is in one bloc
+        #3 the bloc is marked as occupied
+    */
+    
+    size_t size = sizeof(char);
+    //Checks #1
+    if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
+        printf("ERROR : the pointer given isn't accessible by ctrl_read_char \n");
+        exit(1);
+    }
+    //Checks #2
+    else if (((size_t) ptr - (size_t) small_tab)/128!=((size_t) ptr + size - (size_t) small_tab)/128){
+        printf("ERROR : the data type is to large \n");
+        exit(1);
+    }
+    //Checks #3
+    else if ((*(size_t*)(small_tab + ((size_t)ptr -(size_t)small_tab)/128)%2==0)){
+        printf("ERROR : the bloc is free \n");
+        exit(1);
+    }
+    printf("%d", *ptr);
+}
+
+void ctrl_write_int(int * ptr, int n){
+    /* Allows reading of *ptr iif 
+        #1 ptr points in the content part of a bloc
+        #2 the type of ptr is small enough that its content is in one bloc
+        #3 the bloc is marked as occupied
+    */
+    size_t size = sizeof(int);
+    //Checks #1
+    if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
+        printf("ERROR : the pointer given isn't accessible by ctrl_write_int \n");
+        exit(1);
+    }
+    //Checks #2
+    else if (((size_t) ptr - (size_t) small_tab)/128!=((size_t) ptr + size - (size_t) small_tab)/128){
+        printf("ERROR : the data type is to large \n");
+        exit(1);
+    }
+    //Checks #3
+    else if ((*(size_t*)(small_tab + ((size_t)ptr -(size_t)small_tab)/128)%2==0)){
+        printf("ERROR : the bloc is free \n");
+        exit(1);
+    }
+    *ptr=n;
+}
+
+
+void ctrl_write_char(char * ptr, char n){
+    /* Allows reading of *ptr iif 
+        #1 ptr points in the content part of a bloc
+        #2 the type of ptr is small enough that its content is in one bloc
+        #3 the bloc is marked as occupied
+    */
+    size_t size = sizeof(char);
+    //Checks #1
+    if (!((size_t) small_tab <= (size_t) ptr && (size_t) ptr <= (size_t) (small_tab + 128*MAX_SMALL))){
+        printf("ERROR : the pointer given isn't accessible by ctrl_write_char \n");
+        exit(1);
+    }
+    //Checks #2
+    else if (((size_t) ptr - (size_t) small_tab)/128!=((size_t) ptr + size - (size_t) small_tab)/128){
+        printf("ERROR : the data type is to large \n");
+        exit(1);
+    }
+    //Checks #3
+    else if ((*(size_t*)(small_tab + ((size_t)ptr -(size_t)small_tab)/128)%2==0)){
+        printf("ERROR : the bloc is free \n");
+        exit(1);
+    }
+    *ptr=n;
 }
