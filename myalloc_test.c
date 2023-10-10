@@ -7,8 +7,9 @@ void initialize_test()
 {
     /* Initializes memory when calling mymalloc */
     int *p = (int *)mymalloc(4);
-    printf("\n\nAllocates a pointer at adress %p which calls initialize()\n\n", (void*)p);
+    printf("\n\nAllocates a pointer at adress %p which calls initialize()\n\n", (void *)p);
     visualize_free();
+    initialize();
 }
 
 void mymalloc_test1()
@@ -57,25 +58,22 @@ void mymalloc_test4()
     /* Tries to allocates memory 103 times */
     printf("\n\nAllocates memory 103 times \n\n");
     for (int i = 0; i < 103; i++)
-    {   
+    {
         mymalloc(1);
     }
     initialize();
-    
 }
 
 void myfree_test1()
 {
     /*Allocates first bloc of memory then frees it*/
     char *p = (char *)mymalloc(1);
-    printf("\n\nAllocates 1 bloc of memory at adress %p \n\n", (void*)p);
+    printf("\n\nAllocates 1 bloc of memory at adress %p \n\n", (void *)p);
     visualize_mem();
     myfree(p);
-    printf("\n\nFrees bloc of adress %p \n\n", (void*)p);
+    printf("\n\nFrees bloc of adress %p \n\n", (void *)p);
     visualize_mem();
     initialize();
-
-
 }
 
 void myfree_test2()
@@ -83,9 +81,9 @@ void myfree_test2()
     /* Allocates a bloc then tries to free it two times */
     char *p = mymalloc(6);
     p[4] = 6;
-    printf("\n\n Allocates a bloc at address %p then change it 5th byte to 6\n\n", (void*)p);
+    printf("\n\n Allocates a bloc at address %p then change it 5th byte to 6\n\n", (void *)p);
     visualize_mem();
-    printf("\n\nFrees the ardess %p twice\n\n", (void*)p);
+    printf("\n\nFrees the ardess %p twice\n\n", (void *)p);
     myfree(p);
     myfree(p);
     initialize();
@@ -96,7 +94,7 @@ void myfree_test3()
     /* Tries to free a bloc that is not in the table */
     char *p = (char *)malloc(sizeof(char));
     visualize_free();
-    printf("\n\n Frees memory at adress %p\n\n",(void*)p);
+    printf("\n\n Frees memory at adress %p\n\n", (void *)p);
     myfree(p);
     initialize();
 }
@@ -113,12 +111,12 @@ void myrealloc_test1()
 {
     /* Allocate a bloc then reallocates it then frees it */
     char *p = (char *)mymalloc(1);
-    printf("\n\nAllocates a bloc at adress %p\n\n", (void*)p);
+    printf("\n\nAllocates a bloc at adress %p\n\n", (void *)p);
     visualize_mem();
     p = myrealloc(p, 6);
-    printf("\n\n Reallocates bloc at adress %p with size 6 \n\n", (void*)p);
+    printf("\n\n Reallocates bloc at adress %p with size 6 \n\n", (void *)p);
     visualize_mem();
-    printf("\n\n Frees the bloc at adresse %p\n\n", (void*)p);
+    printf("\n\n Frees the bloc at adresse %p\n\n", (void *)p);
     myfree(p);
     visualize_mem();
     initialize();
@@ -129,7 +127,7 @@ void myrealloc_test2()
     /* Tries to realloc a bloc that is not in small_tab */
     char *p = (char *)malloc(sizeof(char));
     visualize_free();
-    printf("\n\nReallocates memory at adress %p\n\n", (void*)p);
+    printf("\n\nReallocates memory at adress %p\n\n", (void *)p);
     myrealloc(p, 6);
     initialize();
 }
@@ -197,7 +195,7 @@ void performance_test()
 }
 
 int main()
-{   
+{
     printf("\n\n\n########################## TEST INITIALIZE ########################## \n\n\n");
     initialize_test();
 
