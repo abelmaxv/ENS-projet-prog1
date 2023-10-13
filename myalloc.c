@@ -7,13 +7,14 @@
 #define SIZE_BLK_SMALL (128 - sizeof(size_t))
 #define SIZE_BLK_LARGE 1024
 
-void *sbrk(intptr_t increment);
+// One may need to uncoment the following to compile on linux
+// void *sbrk(intptr_t increment);
 
 char small_tab[MAX_SMALL * 128];
 // Begining of the list of free small blocs : fst_free
 char *small_free;
 // Begining of list of free large blocs : big_free
-char *big_free;
+size_t *big_free;
 // is_initialized becomes 1 after the first call of mymalloc and initialize
 char is_initialized = 0;
 
@@ -21,7 +22,7 @@ void initialize()
 {
     /* Fills headers to make initial list for empty small_tab */
     small_free = small_tab;
-    big_free = (char *)sbrk(SIZE_BLK_LARGE);
+    big_free = (size_t *)sbrk(SIZE_BLK_LARGE);
 
     if (big_free == (void *)-1)
     {
@@ -42,7 +43,7 @@ void initialize()
     // Initializes list of large free blocs
     ptr = (size_t **)big_free;
     *ptr = NULL;
-    *(size_t *)(big_free + 1) = SIZE_BLK_LARGE - 2 * sizeof(size_t);
+    *(big_free + 1) = SIZE_BLK_LARGE;
     is_initialized = 1;
 }
 
@@ -125,27 +126,35 @@ void *mymalloc(size_t size)
             // l becomes the smallest multiple of sizeof(size_t) greater than size
             l = sizeof(size_t) * (l / sizeof(size_t) + 1);
         }
-        // Seeks for a free large bloc of size > size +2*sizeof(size_t)
-        size_t *previous_ptr = NULL;
-        size_t *ptr = (size_t *)big_free;
+        // Seeks for a free large bloc of size > l+2*sizeof(size_t)
+        size_t *previous_ptr = big_free;
+        size_t *ptr = big_free;
         while (ptr != NULL)
         {
             if (*(ptr + 1) > l + 2 * sizeof(size_t))
+            {
                 break;
+            }
             previous_ptr = ptr;
             ptr = *(size_t **)ptr;
         }
-
+        printf("%lu \n", *(ptr + 1));
+        printf("%lu \n", l + 2 * sizeof(size_t) + SIZE_BLK_SMALL);
         // Subcase 1: If no such bloc was found
         if (ptr == NULL)
         {
             // Ask for a new bloc in memory
             ptr = sbrk(l + 2 * sizeof(size_t));
+            if (ptr == (void *)-1)
+            {
+                printf("ERROR : Could not create a bloc");
+                return NULL;
+            }
             *(ptr + 1) = l + 2 * sizeof(size_t);
         }
 
         // Subcase 2: If the bloc found is almost the size asked
-        else if (*(ptr + 1) < l + 2 * sizeof(size_t) + SIZE_BLK_SMALL)
+        else if (*(ptr + 1) > l + 2 * sizeof(size_t) + SIZE_BLK_SMALL)
         {
             // Declares the bloc as occupied
             *(size_t **)previous_ptr = *(size_t **)ptr;
@@ -155,11 +164,19 @@ void *mymalloc(size_t size)
         // Subcase 3: If the bloc found is far larger than the size asked
         else
         {
+            // Divides the bloc
             size_t k = l + 2 * sizeof(size_t);
-            
-        }
+            size_t new_size = *(ptr + 1) - k;
+            *(size_t *)((char *)ptr + new_size + 1) = 1;
+            *((size_t *)((char *)ptr + new_size + 1) + 1) = k;
+            *(ptr + 1) = new_size;
+            ptr = (size_t *)((char *)ptr + new_size + 1);
 
-        return ptr;
+            // Declares the bloc as occupied
+            *(size_t **)previous_ptr = *(size_t **)ptr;
+            *ptr += 1;
+        }
+        return ptr + 2;
     }
     return NULL;
 }

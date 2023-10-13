@@ -54,3 +54,6 @@ dkms.conf
 
 # Binary files
 myalloc_test
+
+#MacOS file
+*.DS_Store
