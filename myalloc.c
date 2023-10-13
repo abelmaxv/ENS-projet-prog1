@@ -70,7 +70,8 @@ void *mymalloc_v1(size_t size)
     return NULL;
 }
 
-void *mymalloc(size_t size)
+// Second part version
+void *mymalloc_v2(size_t size)
 {
     // initializes small_tab iif it's not allready done
     if (is_initialized == 0)
@@ -80,7 +81,7 @@ void *mymalloc(size_t size)
     {
         char *temp_ptr = small_free;
 
-        // changes fst_free
+        // changes small_free
         small_free = *(char **)temp_ptr;
         // marks the bloc as occupied
         *(size_t *)temp_ptr += 1;
@@ -91,6 +92,75 @@ void *mymalloc(size_t size)
         printf("ERROR : none of the blocs are free \n");
     else
         printf("ERROR : asked for too much memory \n");
+    return NULL;
+}
+
+void *mymalloc(size_t size)
+{
+    // initializes small_tab iif it's not allready done
+    if (is_initialized == 0)
+        initialize();
+
+    // Case I : Asking for small size cases
+    if (size <= SIZE_BLK_SMALL && small_free != NULL)
+    {
+        char *temp_ptr = small_free;
+
+        // changes small_free
+        small_free = *(char **)temp_ptr;
+        // marks the bloc as occupied
+        *(size_t *)temp_ptr += 1;
+
+        return temp_ptr + sizeof(size_t);
+    }
+    else if (small_free == NULL)
+        printf("ERROR : none of the blocs are free \n");
+
+    // Case II : Asking for large size cases
+    else
+    {
+        size_t l = size;
+        if (l % sizeof(size_t) != 0)
+        {
+            // l becomes the smallest multiple of sizeof(size_t) greater than size
+            l = sizeof(size_t) * (l / sizeof(size_t) + 1);
+        }
+        // Seeks for a free large bloc of size > size +2*sizeof(size_t)
+        size_t *previous_ptr = NULL;
+        size_t *ptr = (size_t *)big_free;
+        while (ptr != NULL)
+        {
+            if (*(ptr + 1) > l + 2 * sizeof(size_t))
+                break;
+            previous_ptr = ptr;
+            ptr = *(size_t **)ptr;
+        }
+
+        // Subcase 1: If no such bloc was found
+        if (ptr == NULL)
+        {
+            // Ask for a new bloc in memory
+            ptr = sbrk(l + 2 * sizeof(size_t));
+            *(ptr + 1) = l + 2 * sizeof(size_t);
+        }
+
+        // Subcase 2: If the bloc found is almost the size asked
+        else if (*(ptr + 1) < l + 2 * sizeof(size_t) + SIZE_BLK_SMALL)
+        {
+            // Declares the bloc as occupied
+            *(size_t **)previous_ptr = *(size_t **)ptr;
+            *ptr += 1;
+        }
+
+        // Subcase 3: If the bloc found is far larger than the size asked
+        else
+        {
+            size_t k = l + 2 * sizeof(size_t);
+            
+        }
+
+        return ptr;
+    }
     return NULL;
 }
 
