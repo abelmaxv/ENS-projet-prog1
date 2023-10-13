@@ -1,21 +1,36 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <stdint.h>
 
 #define MAX_SMALL 100
 #define SIZE_BLK_SMALL (128 - sizeof(size_t))
+#define SIZE_BLK_LARGE 1024
+
+void *sbrk(intptr_t increment);
 
 char small_tab[MAX_SMALL * 128];
-// Begining of the list of free blocs : fst_free
-char *fst_free;
-
+// Begining of the list of free small blocs : fst_free
+char *small_free;
+// Begining of list of free large blocs : big_free
+char *big_free;
 // is_initialized becomes 1 after the first call of mymalloc and initialize
 char is_initialized = 0;
 
 void initialize()
 {
     /* Fills headers to make initial list for empty small_tab */
-    fst_free = small_tab;
+    small_free = small_tab;
+    big_free = (char *)sbrk(SIZE_BLK_LARGE);
+
+    if (big_free == (void *)-1)
+    {
+        printf("ERROR : Could not initialize big_free \n");
+        exit(1);
+    }
+
     size_t **ptr;
+    // Initializes list of small free blocs :
     for (int b = 0; b < MAX_SMALL - 1; b++)
     {
         ptr = (size_t **)(small_tab + b * 128);
@@ -23,6 +38,11 @@ void initialize()
     }
     ptr = (size_t **)(small_tab + (MAX_SMALL - 1) * 128);
     *ptr = NULL;
+
+    // Initializes list of large free blocs
+    ptr = (size_t **)big_free;
+    *ptr = NULL;
+    *(size_t *)(big_free + 1) = SIZE_BLK_LARGE - 2 * sizeof(size_t);
     is_initialized = 1;
 }
 
@@ -56,18 +76,18 @@ void *mymalloc(size_t size)
     if (is_initialized == 0)
         initialize();
 
-    if (size <= SIZE_BLK_SMALL && fst_free != NULL)
+    if (size <= SIZE_BLK_SMALL && small_free != NULL)
     {
-        char *temp_ptr = fst_free;
+        char *temp_ptr = small_free;
 
         // changes fst_free
-        fst_free = *(char **)temp_ptr;
+        small_free = *(char **)temp_ptr;
         // marks the bloc as occupied
         *(size_t *)temp_ptr += 1;
 
         return temp_ptr + sizeof(size_t);
     }
-    else if (fst_free == NULL)
+    else if (small_free == NULL)
         printf("ERROR : none of the blocs are free \n");
     else
         printf("ERROR : asked for too much memory \n");
@@ -111,9 +131,9 @@ void myfree(void *ptr)
     {
         char **bloc_ptr = (char **)((char *)ptr - sizeof(size_t));
         // The freed bloc points to fst_free
-        *bloc_ptr = fst_free;
+        *bloc_ptr = small_free;
         // fst_free points to the freed bloc
-        fst_free = (char *)ptr - sizeof(size_t);
+        small_free = (char *)ptr - sizeof(size_t);
     }
 }
 
@@ -205,7 +225,7 @@ void visualize_free()
     /* Displays the list of free blocs in memory */
     printf("************************************************ \n");
     printf("LIST OF FREE BLOCS IN MEMORY : \n");
-    char *ptr = fst_free;
+    char *ptr = small_free;
     while (ptr != NULL)
     {
         size_t b = ((size_t)ptr - (size_t)small_tab) / 128;
