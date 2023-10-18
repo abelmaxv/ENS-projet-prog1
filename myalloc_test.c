@@ -45,11 +45,12 @@ void mymalloc_test2()
 void mymalloc_test3()
 {
     /* Tries to allocate a data too big */
+    visualize_free();
     printf("\n\nTries to allocates object of size 130 \n\n");
     char *p = (char *)mymalloc(130);
     if (p != NULL)
         *p = 1;
-
+    visualize_free();
     initialize();
 }
 

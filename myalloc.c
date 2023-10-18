@@ -138,8 +138,6 @@ void *mymalloc(size_t size)
             previous_ptr = ptr;
             ptr = *(size_t **)ptr;
         }
-        printf("%lu \n", *(ptr + 1));
-        printf("%lu \n", l + 2 * sizeof(size_t) + SIZE_BLK_SMALL);
         // Subcase 1: If no such bloc was found
         if (ptr == NULL)
         {
@@ -157,7 +155,12 @@ void *mymalloc(size_t size)
         else if (*(ptr + 1) > l + 2 * sizeof(size_t) + SIZE_BLK_SMALL)
         {
             // Declares the bloc as occupied
+            if (previous_ptr == big_free)
+            {
+                big_free = *(size_t **)ptr;
+            }
             *(size_t **)previous_ptr = *(size_t **)ptr;
+            printf("%p \n", (void *)*(size_t **)previous_ptr);
             *ptr += 1;
         }
 
@@ -311,13 +314,22 @@ void visualize_free()
 {
     /* Displays the list of free blocs in memory */
     printf("************************************************ \n");
-    printf("LIST OF FREE BLOCS IN MEMORY : \n");
-    char *ptr = small_free;
-    while (ptr != NULL)
+    printf("LIST OF SMALL FREE BLOCS IN MEMORY : \n");
+    char *ptr_small = small_free;
+    while (ptr_small != NULL)
     {
-        size_t b = ((size_t)ptr - (size_t)small_tab) / 128;
-        printf("%lu (%p); ", b, (void *)ptr);
-        ptr = *(char **)ptr;
+        size_t b = ((size_t)ptr_small - (size_t)small_tab) / 128;
+        printf("%lu (%p); ", b, (void *)ptr_small);
+        ptr_small = *(char **)ptr_small;
+    }
+    printf("\n\n");
+    printf("LIST OF LARGE FREE BLOCS IN MEMORY : \n");
+    size_t *ptr_large = big_free;
+    while (ptr_large != NULL)
+    {
+
+        printf("%p (size : %lu, next : %p); ", (void *)ptr_large, *(ptr_large + 1), (void *)*(size_t **)ptr_large);
+        ptr_large = *(size_t **)ptr_large;
     }
     printf("\n");
     printf("************************************************ \n");
