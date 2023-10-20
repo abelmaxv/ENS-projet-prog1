@@ -126,6 +126,7 @@ void *mymalloc(size_t size)
             // l becomes the smallest multiple of sizeof(size_t) greater than size
             l = sizeof(size_t) * (l / sizeof(size_t) + 1);
         }
+        printf("L : %lu \n",l);
         // Seeks for a free large bloc of size > l+2*sizeof(size_t)
         size_t *previous_ptr = big_free;
         size_t *ptr = big_free;
@@ -152,7 +153,7 @@ void *mymalloc(size_t size)
         }
 
         // Subcase 2: If the bloc found is almost the size asked
-        else if (*(ptr + 1) > l + 2 * sizeof(size_t) + SIZE_BLK_SMALL)
+        else if (*(ptr + 1) < l + 2 * sizeof(size_t) + SIZE_BLK_SMALL)
         {
             // Declares the bloc as occupied
             if (previous_ptr == big_free)
@@ -160,7 +161,6 @@ void *mymalloc(size_t size)
                 big_free = *(size_t **)ptr;
             }
             *(size_t **)previous_ptr = *(size_t **)ptr;
-            printf("%p \n", (void *)*(size_t **)previous_ptr);
             *ptr += 1;
         }
 
