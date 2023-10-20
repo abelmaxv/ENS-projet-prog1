@@ -226,8 +226,8 @@ void myfree_v2(void *ptr)
 
 // Final version
 void myfree(void *ptr)
-{   
-    //Checks if ptr points to a small bloc
+{
+    // Checks if ptr points to a small bloc
     if ((char *)ptr < small_tab)
     {
         if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
@@ -250,10 +250,10 @@ void myfree(void *ptr)
             small_free = (char *)ptr - sizeof(size_t);
         }
     }
-    else 
+    else
     {
-        size_t *ptr_sizet = (size_t *)ptr-2;
-        if (*(ptr_sizet)%2 == 0)
+        size_t *ptr_sizet = (size_t *)ptr - 2;
+        if (*(ptr_sizet) % 2 == 0)
         {
             printf("ERROR : the bloc is already free \n");
         }
@@ -262,11 +262,20 @@ void myfree(void *ptr)
             *(size_t **)(ptr_sizet) = big_free;
             big_free = ptr_sizet;
         }
-    
     }
 }
 
-void *myrealloc(void *ptr, size_t size)
+//Copies the size firsts characters of ptr1 in ptr2
+void copy(char *ptr1, char *ptr2, size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        *(ptr2+i) = *(ptr1+i);
+    }
+}
+
+// First and second part version
+void *myrealloc_v1(void *ptr, size_t size)
 {
     if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
     {
@@ -281,6 +290,39 @@ void *myrealloc(void *ptr, size_t size)
         return NULL;
     }
     return ptr;
+}
+
+// Final version
+void *myrealloc(void *ptr, size_t size)
+{
+    size_t bloc_size;
+    if((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL))
+    {
+        if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
+        {
+            printf("ERROR : the pointer given is not at the begining of a bloc \n");
+            return NULL;
+        }
+        bloc_size = SIZE_BLK_SMALL; 
+    }
+    else
+    {
+        size_t *ptr_sizet = (size_t *)ptr;
+        if (*(ptr_sizet-2)%2 == 0)
+        {
+            printf("ERROR : the bloc is free");
+            return NULL;
+        }
+        bloc_size = *(ptr_sizet-1);
+    }
+    if (size <= bloc_size)
+    {
+        return ptr;
+    }
+    void *new_ptr = mymalloc(size);
+    copy(ptr, new_ptr, bloc_size);
+    free(ptr);
+    return new_ptr;
 }
 
 /* FUNCTIONS TO VISUALIZE MEMORY */
