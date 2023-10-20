@@ -8,7 +8,7 @@
 #define SIZE_BLK_LARGE 1024
 
 // One may need to uncoment the following to compile on linux
-// void *sbrk(intptr_t increment);
+void *sbrk(intptr_t increment);
 
 char small_tab[MAX_SMALL * 128];
 // Begining of the list of free small blocs : fst_free
@@ -126,7 +126,6 @@ void *mymalloc(size_t size)
             // l becomes the smallest multiple of sizeof(size_t) greater than size
             l = sizeof(size_t) * (l / sizeof(size_t) + 1);
         }
-        printf("L : %lu \n",l);
         // Seeks for a free large bloc of size > l+2*sizeof(size_t)
         size_t *previous_ptr = big_free;
         size_t *ptr = big_free;
@@ -170,14 +169,10 @@ void *mymalloc(size_t size)
             // Divides the bloc
             size_t k = l + 2 * sizeof(size_t);
             size_t new_size = *(ptr + 1) - k;
-            *(size_t *)((char *)ptr + new_size + 1) = 1;
-            *((size_t *)((char *)ptr + new_size + 1) + 1) = k;
             *(ptr + 1) = new_size;
-            ptr = (size_t *)((char *)ptr + new_size + 1);
-
-            // Declares the bloc as occupied
-            *(size_t **)previous_ptr = *(size_t **)ptr;
-            *ptr += 1;
+            ptr = (size_t *)((char*)ptr + new_size);
+            *ptr = 1;
+            *(ptr + 1) = k;
         }
         return ptr + 2;
     }
