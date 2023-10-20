@@ -96,6 +96,7 @@ void *mymalloc_v2(size_t size)
     return NULL;
 }
 
+// Final version
 void *mymalloc(size_t size)
 {
     // initializes small_tab iif it's not allready done
@@ -170,7 +171,7 @@ void *mymalloc(size_t size)
             size_t k = l + 2 * sizeof(size_t);
             size_t new_size = *(ptr + 1) - k;
             *(ptr + 1) = new_size;
-            ptr = (size_t *)((char*)ptr + new_size);
+            ptr = (size_t *)((char *)ptr + new_size);
             *ptr = 1;
             *(ptr + 1) = k;
         }
@@ -199,7 +200,8 @@ void myfree_v1(void *ptr)
     }
 }
 
-void myfree(void *ptr)
+// Second part version
+void myfree_v2(void *ptr)
 {
     if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
         printf("ERROR : the pointer given isn't accessible by myfree \n");
@@ -219,6 +221,48 @@ void myfree(void *ptr)
         *bloc_ptr = small_free;
         // fst_free points to the freed bloc
         small_free = (char *)ptr - sizeof(size_t);
+    }
+}
+
+// Final version
+void myfree(void *ptr)
+{   
+    //Checks if ptr points to a small bloc
+    if ((char *)ptr < small_tab)
+    {
+        if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
+            printf("ERROR : the pointer given isn't accessible by myfree \n");
+
+        else if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
+        {
+            printf("ERROR : the pointer given is not at the begining of a bloc \n");
+        }
+        else if (*((size_t *)ptr - 1) % 2 == 0)
+        {
+            printf("ERROR : the bloc is already free \n");
+        }
+        else
+        {
+            char **bloc_ptr = (char **)((char *)ptr - sizeof(size_t));
+            // The freed bloc points to fst_free
+            *bloc_ptr = small_free;
+            // fst_free points to the freed bloc
+            small_free = (char *)ptr - sizeof(size_t);
+        }
+    }
+    else 
+    {
+        size_t *ptr_sizet = (size_t *)ptr-2;
+        if (*(ptr_sizet)%2 == 0)
+        {
+            printf("ERROR : the bloc is already free \n");
+        }
+        else
+        {
+            *(size_t **)(ptr_sizet) = big_free;
+            big_free = ptr_sizet;
+        }
+    
     }
 }
 
