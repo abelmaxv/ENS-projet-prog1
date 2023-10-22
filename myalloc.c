@@ -356,7 +356,7 @@ void print_bloc(void *ptr)
         printf("Type : Free \n");
     else
         printf("Type : Occupied \n");
-    printf("Begining of writing zone : %p \n", content_ptr);
+    printf("Begining of writing zone : %p \n", (void*) content_ptr);
     printf("Size : %lu \n", bloc_size);
     printf("Content : \n");
     ctrl_read(content_ptr, 0, bloc_size);
@@ -369,11 +369,11 @@ void print_freeList()
     printf("DISPLAYS THE LIST OF FREE BLOCS IN MEMORY \n");
     printf("LIST OF SMALL FREE BLOCS IN MEMORY : \n");
     size_t index;
-    size_t *ptr_small = small_free;
+    size_t *ptr_small = (size_t *) small_free;
     while (ptr_small != NULL)
     {
         index = ((size_t)ptr_small - (size_t)small_tab) / 128;
-        printf("%p (index : %lu, size : %lu, next : %p); ", (void *)ptr_small, index, SIZE_BLK_SMALL + sizeof(size_t), *(size_t **)ptr_small);
+        printf("%p (index : %lu, size : %lu, next : %p); ", (void *)ptr_small, index, SIZE_BLK_SMALL + sizeof(size_t), (void*) *(size_t **)ptr_small);
         ptr_small = *(size_t **)ptr_small;
     }
     printf("\n");
@@ -391,6 +391,7 @@ void print_freeList()
 void print_smallOccupiedList()
 {
     /*Displays the occupied blocs and returns an array of free blocs*/
+    printf("************************************************ \n");
     printf("DISPLAYING SMALL OCCUPIED BLOCS : \n");
     int counter = 0;
     for (size_t b = 0; b < MAX_SMALL; b++)
@@ -402,7 +403,15 @@ void print_smallOccupiedList()
         }
     }
     printf("\n");
-    printf("________________________________________________ \n");
+    printf("************************************************ \n");
+}
+
+void print_mem()
+{
+    /*Displays the list of free blocs and small occupied blocs*/
+    printf("MEMORY STATE : \n");
+    print_freeList();
+    print_smallOccupiedList();
 }
 
 /******************************* CONTROLLED READING/WRITING FUNCTIONS *******************************/

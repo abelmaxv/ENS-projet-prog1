@@ -1,17 +1,26 @@
 #include <stdlib.h>
 
+void initialize();
+/******************************* MEMORY ALLOCATION FUNCTIONS *******************************/
+void *mymalloc_v1(size_t size);
+void *mymalloc_v2(size_t size);
 void *mymalloc(size_t size);
+
+void myfree_v1(void *ptr);
+void myfree_v2(void *ptr);
 void myfree(void *ptr);
+
+void *myrealloc_v1(void *ptr, size_t size);
 void *myrealloc(void *ptr, size_t size);
 
-void *mymalloc_v1(size_t size);
-void myfree_v1(void *ptr);
+/******************************* FUNCTIONS TO VISUALIZE MEMORY *******************************/
 
-void initialize();
+void print_bloc(void *ptr);
+void print_freeList();
+void print_smallOccupiedList();
+void print_mem();
 
-void visualize_mem();
-void visualize_bloc(int b);
-void visualize_free();
+/******************************* CONTROLLED READING/WRITING FUNCTIONS *******************************/
 
-void ctrl_read_char(char *ptr);
-void ctrl_write_char(char *ptr, char n);
+void ctrl_read(void *ptr, size_t offset, size_t size);
+void ctrl_write(void *ptr, size_t offset, size_t size, char *src);
