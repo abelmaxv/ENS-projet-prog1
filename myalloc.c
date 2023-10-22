@@ -148,9 +148,10 @@ void *mymalloc(size_t size)
             ptr = sbrk(l + 2 * sizeof(size_t));
             if (ptr == (void *)-1)
             {
-                printf("ERROR : Could not create a bloc");
+                printf("ERROR : Could not create a bloc \n");
                 return NULL;
             }
+            *ptr = (*ptr<<1)+1;
             *(ptr + 1) = l + 2 * sizeof(size_t);
         }
 
@@ -330,53 +331,56 @@ void ctrl_read(void *ptr, size_t offset, size_t size);
 
 void print_bloc(void *ptr)
 {
-    /*Displays content of bloc at adress ptr*/
+    /*Displays informations of bloc which writing zone is at adress ptr*/
     size_t free_mark;
     size_t bloc_size;
-    size_t *content_ptr;
+    size_t *bloc_ptr;
     if ((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL))
     {
-        if (((size_t)ptr - (size_t)small_tab) % 128 != 0)
+        if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
         {
-            printf("ERROR : pointer is not at header \n");
+            printf("ERROR : the pointer given is not at the begining of a wrinting zone \n");
             exit(1);
         }
-        free_mark = *(size_t *)ptr;
+        free_mark = *((size_t *)ptr - 1);
         bloc_size = SIZE_BLK_SMALL;
-        content_ptr = (size_t *)ptr + 1;
+        bloc_ptr = (size_t *)ptr - 1;
     }
     else
     {
-        free_mark = *(size_t *)ptr;
-        bloc_size = *((size_t *)ptr + 1);
-        content_ptr = (size_t *)ptr + 2;
+        free_mark = *((size_t *)ptr - 2);
+        bloc_size = *((size_t *)ptr - 1) - 2 * sizeof(size_t);
+        bloc_ptr = (size_t *)ptr - 2;
     }
-    printf("____________________________ DISPLAYING BLOC : %p ____________________________  \n", (void *)ptr);
+    printf("____________________________ DISPLAYING BLOC : %p ____________________________  \n", (void *)bloc_ptr);
     if (free_mark % 2 == 0)
         printf("Type : Free \n");
     else
         printf("Type : Occupied \n");
-    printf("Begining of writing zone : %p \n", (void*) content_ptr);
-    printf("Size : %lu \n", bloc_size);
+    printf("Begining of writing zone : %p \n", (void *)ptr);
+    printf("Size of writing zone : %lu \n", bloc_size);
     printf("Content : \n");
-    ctrl_read(content_ptr, 0, bloc_size);
+    if (free_mark % 2 == 0)
+        printf("Unreadable (free) \n");
+    else 
+        ctrl_read(ptr, 0, bloc_size);
 }
 
 void print_freeList()
 {
     /* Displays the list of free blocs in memory */
     printf("************************************************ \n");
-    printf("DISPLAYS THE LIST OF FREE BLOCS IN MEMORY \n");
+    printf("DISPLAYING THE LIST OF FREE BLOCS IN MEMORY \n\n");
     printf("LIST OF SMALL FREE BLOCS IN MEMORY : \n");
     size_t index;
-    size_t *ptr_small = (size_t *) small_free;
+    size_t *ptr_small = (size_t *)small_free;
     while (ptr_small != NULL)
     {
         index = ((size_t)ptr_small - (size_t)small_tab) / 128;
-        printf("%p (index : %lu, size : %lu, next : %p); ", (void *)ptr_small, index, SIZE_BLK_SMALL + sizeof(size_t), (void*) *(size_t **)ptr_small);
+        printf("%p (index : %lu, next : %p); ", (void *)ptr_small, index, (void *)*(size_t **)ptr_small);
         ptr_small = *(size_t **)ptr_small;
     }
-    printf("\n");
+    printf("\n\n");
     printf("LIST OF LARGE FREE BLOCS IN MEMORY : \n");
     size_t *ptr_large = big_free;
     while (ptr_large != NULL)
@@ -431,7 +435,7 @@ void ctrl_read(void *ptr, size_t offset, size_t size)
         // Checks #1
         if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
         {
-            printf("ERROR : the pointer given is not at the begining of a bloc \n");
+            printf("ERROR : the pointer given is not at the begining of a writing zone \n");
             exit(1);
         }
         free_mark = *((size_t *)ptr - 1);
@@ -454,7 +458,7 @@ void ctrl_read(void *ptr, size_t offset, size_t size)
         printf("ERROR : Trying to read to much data \n");
         exit(1);
     }
-    for (size_t i = offset; i <= offset + size; i++)
+    for (size_t i = offset; i < offset + size; i++)
     {
         printf("%d", ((char *)ptr)[i]);
     }
@@ -476,7 +480,7 @@ void ctrl_write(void *ptr, size_t offset, size_t size, char *src)
         // Checks #1
         if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
         {
-            printf("ERROR : the pointer given is not at the begining of a bloc \n");
+            printf("ERROR : the pointer given is not at the begining of a wrinting zone \n");
             exit(1);
         }
         free_mark = *((size_t *)ptr - 1);
@@ -490,13 +494,13 @@ void ctrl_write(void *ptr, size_t offset, size_t size, char *src)
     // Checks #2
     if (free_mark % 2 == 0)
     {
-        printf("ERROR : Can't read, the bloc is free \n");
+        printf("ERROR : Can't write, the bloc is free \n");
         exit(1);
     }
     // Checks #3
     if (offset + size > bloc_size)
     {
-        printf("ERROR : Trying to read to much data \n");
+        printf("ERROR : Trying to write to much data \n");
         exit(1);
     }
     copy(src, (char *)ptr + offset, size);
