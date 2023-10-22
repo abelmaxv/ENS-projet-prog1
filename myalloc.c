@@ -7,8 +7,8 @@
 #define SIZE_BLK_SMALL (128 - sizeof(size_t))
 #define SIZE_BLK_LARGE 1024
 
-// One may need to uncoment the following to compile on linux
-void *sbrk(intptr_t increment);
+// One may need to comment ot uncomment the following to compile on linux or macOS
+//void *sbrk(intptr_t increment);
 
 char small_tab[MAX_SMALL * 128];
 // Begining of the list of free small blocs : fst_free
@@ -47,7 +47,7 @@ void initialize()
     is_initialized = 1;
 }
 
-/* MEMORY ALLOCATION FUNCTIONS */
+/******************************* MEMORY ALLOCATION FUNCTIONS *******************************/
 
 // First part version
 void *mymalloc_v1(size_t size)
@@ -103,7 +103,7 @@ void *mymalloc(size_t size)
     if (is_initialized == 0)
         initialize();
 
-    // Case I : Asking for small size cases
+    // Case I : Asking for small size 
     if (size <= SIZE_BLK_SMALL && small_free != NULL)
     {
         char *temp_ptr = small_free;
@@ -116,9 +116,11 @@ void *mymalloc(size_t size)
         return temp_ptr + sizeof(size_t);
     }
     else if (small_free == NULL)
+    {
         printf("ERROR : none of the blocs are free \n");
-
-    // Case II : Asking for large size cases
+        return NULL;
+    }
+    // Case II : Asking for large size 
     else
     {
         size_t l = size;
@@ -177,7 +179,6 @@ void *mymalloc(size_t size)
         }
         return ptr + 2;
     }
-    return NULL;
 }
 
 // First part version
@@ -228,12 +229,9 @@ void myfree_v2(void *ptr)
 void myfree(void *ptr)
 {
     // Checks if ptr points to a small bloc
-    if ((char *)ptr < small_tab)
+    if ((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL))
     {
-        if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
-            printf("ERROR : the pointer given isn't accessible by myfree \n");
-
-        else if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
+        if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
         {
             printf("ERROR : the pointer given is not at the begining of a bloc \n");
         }
@@ -259,6 +257,7 @@ void myfree(void *ptr)
         }
         else
         {
+            //Puts the bloc at the begining of the free bloc list
             *(size_t **)(ptr_sizet) = big_free;
             big_free = ptr_sizet;
         }
@@ -321,13 +320,13 @@ void *myrealloc(void *ptr, size_t size)
     }
     void *new_ptr = mymalloc(size);
     copy(ptr, new_ptr, bloc_size);
-    free(ptr);
+    myfree(ptr);
     return new_ptr;
 }
 
-/* FUNCTIONS TO VISUALIZE MEMORY */
+/******************************* FUNCTIONS TO VISUALIZE MEMORY *******************************/
 
-void ctrl_read_char(char *ptr);
+void ctrl_read(void *ptr, size_t offset, size_t size);
 void visualize_bloc(int b)
 {
     /*Displays content of bloc b*/
@@ -416,49 +415,92 @@ void visualize_free()
     printf("************************************************ \n");
 }
 
-/* CONTROLLED READING/WRITING FUNCTIONS */
+/******************************* CONTROLLED READING/WRITING FUNCTIONS *******************************/
 
-void ctrl_read_char(char *ptr)
+void ctrl_read(void *ptr, size_t offset, size_t size)
 {
-    /* Allows reading of *ptr iif
-        #1 ptr points in the content part of a bloc
-        #2 the bloc is marked as occupied
-        Stops the program otherwith
+    /* Reads the characters at positions [offset, offset + size - 1] in the bloc which writng zone begins at ptr
+    Must check that :
+    #1 ptr is indeed at the begining of a writing zone (if possible)
+    #2 The bloc is occupied
+    #3 [offset, offset + size - 1] is include in the bloc
     */
-
-    // Checks #1
-    if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
+    size_t free_mark;
+    size_t bloc_size;
+    if ((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL))
     {
-        printf("ERROR : the pointer given isn't accessible by ctrl_read_char \n");
+        //Checks #1
+        if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
+        {
+            printf("ERROR : the pointer given is not at the begining of a bloc \n");
+            exit(1);
+        }
+        free_mark = *((size_t*) ptr - 1);
+        bloc_size = SIZE_BLK_SMALL;
+    }
+    else
+    {
+        free_mark = *((size_t *) ptr - 2);
+        bloc_size = *((size_t *) ptr - 1);
+    }
+    //Checks #2
+    if (free_mark%2 == 0)
+    {
+        printf("ERROR : Can't read, the bloc is free \n");
         exit(1);
     }
-
-    // Checks #2
-    else if ((*(size_t *)(ptr - ((size_t)ptr - (size_t)small_tab) % 128) % 2 == 0))
+    //Checks #3
+    if (offset + size > bloc_size)
     {
-        printf("ERROR : the bloc is free \n");
+        printf("ERROR : Trying to read to much data \n");
         exit(1);
     }
-    printf("%d", *ptr);
+    for (size_t i = offset; i <= offset + size ; i++)
+    {
+        printf("%d", ((char *)ptr)[i]);
+    }
+    printf("\n");
+
 }
 
-void ctrl_write_char(char *ptr, char n)
+
+void ctrl_write(void *ptr, size_t offset, size_t size, char* src)
 {
-    /* Allows reading of *ptr iif
-        #1 ptr points in the content part of a bloc
-        #2 the bloc is marked as occupied
+    /* Writes the size first characters of src at the position [offset, offset + size - 1] in the bloc which writng zone begins at ptr
+    Must check that :
+    #1 ptr is indeed at the begining of a writing zone (if possible)
+    #2 The bloc is occupied
+    #3 [offset, offset + size - 1] is include in the bloc
     */
-    // Checks #1
-    if (!((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL)))
+    size_t free_mark;
+    size_t bloc_size;
+    if ((size_t)small_tab <= (size_t)ptr && (size_t)ptr <= (size_t)(small_tab + 128 * MAX_SMALL))
     {
-        printf("ERROR : the pointer given isn't accessible by ctrl_write_char \n");
+        //Checks #1
+        if (((size_t)ptr - (size_t)small_tab) % 128 != sizeof(size_t))
+        {
+            printf("ERROR : the pointer given is not at the begining of a bloc \n");
+            exit(1);
+        }
+        free_mark = *((size_t*) ptr - 1);
+        bloc_size = SIZE_BLK_SMALL;
+    }
+    else
+    {
+        free_mark = *((size_t *) ptr - 2);
+        bloc_size = *((size_t *) ptr - 1);
+    }
+    //Checks #2
+    if (free_mark%2 == 0)
+    {
+        printf("ERROR : Can't read, the bloc is free \n");
         exit(1);
     }
-    // Checks #2
-    else if ((*(size_t *)(ptr - ((size_t)ptr - (size_t)small_tab) % 128) % 2 == 0))
+    //Checks #3
+    if (offset + size > bloc_size)
     {
-        printf("ERROR : the bloc is free \n");
+        printf("ERROR : Trying to read to much data \n");
         exit(1);
     }
-    *ptr = n;
+    copy(src, (char *)ptr + offset, size);
 }
