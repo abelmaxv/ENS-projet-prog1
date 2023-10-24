@@ -183,7 +183,7 @@ void myrealloc_test3()
     initialize();
 }
 
-void perf1_aux(int n, void *(*mymalloc)(size_t), void (*myfree)(void *))
+void perf1_aux(int n, void *(*my_malloc)(size_t), void (*my_free)(void *))
 {
     /*Allocates 100 small blocs and frees 100 blocs. Repeted n times*/
     char *ptrs[100];
@@ -191,11 +191,11 @@ void perf1_aux(int n, void *(*mymalloc)(size_t), void (*myfree)(void *))
     {
         for (int j = 0; j < 100; j++)
         {
-            ptrs[j] = (char *)(*mymalloc)(1);
+            ptrs[j] = (char *)(*my_malloc)(1);
         }
         for (int j = 0; j < 100; j++)
         {
-            (*myfree)(ptrs[j]);
+            (*my_free)(ptrs[j]);
         }
     }
 }
@@ -232,7 +232,7 @@ void performance_test1()
     printf("Time for malloc : %f sec \n\n", execution_time);
 }
 
-void perf2_aux(int n, int *tab, void *(*mymalloc)(size_t), void (*myfree)(void *))
+void perf2_aux(int n, int *tab, void *(*my_malloc)(size_t), void (*my_free)(void *))
 {
     /*Allocates 100 blocs which sizes are indicates by the elements of tab, and free every blocs. Repeated n times */
     char *ptrs[100];
@@ -240,11 +240,11 @@ void perf2_aux(int n, int *tab, void *(*mymalloc)(size_t), void (*myfree)(void *
     {
         for (int j = 0; j < 100; j++)
         {
-            ptrs[j] = (char *)(*mymalloc)(tab[j]);
+            ptrs[j] = (char *)(*my_malloc)(tab[j]);
         }
         for (int j = 0; j < 100; j++)
         {
-            (*myfree)(ptrs[j]);
+            (*my_free)(ptrs[j]);
         }
     }
 }
