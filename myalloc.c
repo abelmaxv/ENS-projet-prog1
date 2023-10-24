@@ -151,7 +151,7 @@ void *mymalloc(size_t size)
                 printf("ERROR : Could not create a bloc \n");
                 return NULL;
             }
-            *ptr = (*ptr<<1)+1;
+            *ptr = (*ptr << 1) + 1;
             *(ptr + 1) = l + 2 * sizeof(size_t);
         }
 
@@ -362,15 +362,13 @@ void print_bloc(void *ptr)
     printf("Content : \n");
     if (free_mark % 2 == 0)
         printf("Unreadable (free) \n");
-    else 
+    else
         ctrl_read(ptr, 0, bloc_size);
 }
 
-void print_freeList()
+void print_freeSmall()
 {
-    /* Displays the list of free blocs in memory */
-    printf("************************************************ \n");
-    printf("DISPLAYING THE LIST OF FREE BLOCS IN MEMORY \n\n");
+    /* Displays the list of free small blocs*/
     printf("LIST OF SMALL FREE BLOCS IN MEMORY : \n");
     size_t index;
     size_t *ptr_small = (size_t *)small_free;
@@ -380,7 +378,12 @@ void print_freeList()
         printf("%p (index : %lu, next : %p); ", (void *)ptr_small, index, (void *)*(size_t **)ptr_small);
         ptr_small = *(size_t **)ptr_small;
     }
-    printf("\n\n");
+    printf("\n");
+}
+
+void print_freeLarge()
+{
+    /*Displays the list of free large blocs*/
     printf("LIST OF LARGE FREE BLOCS IN MEMORY : \n");
     size_t *ptr_large = big_free;
     while (ptr_large != NULL)
@@ -389,6 +392,16 @@ void print_freeList()
         ptr_large = *(size_t **)ptr_large;
     }
     printf("\n");
+}
+
+void print_freeList()
+{
+    /* Displays the list of free blocs in memory */
+    printf("************************************************ \n");
+    printf("DISPLAYING THE LIST OF FREE BLOCS IN MEMORY \n\n");
+    print_freeSmall();
+    printf("\n");
+    print_freeLarge();
     printf("************************************************ \n");
 }
 

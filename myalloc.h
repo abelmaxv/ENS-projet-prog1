@@ -16,6 +16,8 @@ void *myrealloc(void *ptr, size_t size);
 /******************************* FUNCTIONS TO VISUALIZE MEMORY *******************************/
 
 void print_bloc(void *ptr);
+void print_freeSmall();
+void print_freeLarge();
 void print_freeList();
 void print_smallOccupiedList();
 void print_mem();
